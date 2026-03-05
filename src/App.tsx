@@ -203,7 +203,7 @@ export default function App() {
               Summoning the Raid Demons...
             </motion.h1>
 
-            <div className="w-full max-w-xs md:max-w-md bg-white/10 h-3 md:h-4 rounded-full overflow-hidden border-2 border-white mb-12">
+            <div className="w-full max-w-xs md:max-w-md bg-white/10 h-3 md:h-4 rounded-full overflow-hidden border-2 border-white mb-12 relative">
               <motion.div
                 className="h-full bg-white"
                 initial={{ width: 0 }}
@@ -212,17 +212,40 @@ export default function App() {
             </div>
 
             <AnimatePresence>
-              {showEnterButton && (
-                <motion.button
-                  initial={{ scale: 0, rotate: -10 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  whileHover={{ scale: 1.1, rotate: 2, boxShadow: "0 0 20px #8b0000" }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={handleEnterRaid}
-                  className="px-8 md:px-12 py-4 md:py-6 bg-white text-black font-black text-xl md:text-2xl uppercase rounded-full border-4 border-black hover:bg-accent hover:text-white transition-colors duration-300 flex items-center gap-3 group"
+              {showEnterButton ? (
+                <div className="flex flex-col items-center gap-4">
+                  <motion.button
+                    initial={{ scale: 0, rotate: -10 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    whileHover={{ scale: 1.1, rotate: 2, boxShadow: "0 0 20px #8b0000" }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleEnterRaid}
+                    className="px-8 md:px-12 py-4 md:py-6 bg-white text-black font-black text-xl md:text-2xl uppercase rounded-full border-4 border-black hover:bg-accent hover:text-white transition-colors duration-300 flex items-center gap-3 group"
+                  >
+                    Enter the Raid
+                  </motion.button>
+
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowLeaderboard(true)}
+                    className="flex items-center gap-2 px-6 py-2 bg-white/5 border border-white/20 text-white/60 font-bold rounded-full hover:bg-white/10 hover:text-white transition-all text-sm md:text-base"
+                  >
+                    <Trophy size={16} />
+                    View Leaderboard
+                  </motion.button>
+                </div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center gap-2 px-6 py-2 bg-white/5 border border-white/20 text-white/60 font-bold rounded-full cursor-not-allowed text-xs md:text-sm"
                 >
-                  Enter the Raid
-                </motion.button>
+                  <Trophy size={14} />
+                  Leaderboard Loading...
+                </motion.div>
               )}
             </AnimatePresence>
           </motion.main>
@@ -241,16 +264,19 @@ export default function App() {
                 Claim Your WL
               </motion.h1>
               <p className="text-lg md:text-xl text-white/60 italic">"Prove your loyalty, Megahop."</p>
+            </header>
+
+            <div className="w-full max-w-6xl flex justify-end mb-6">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowLeaderboard(true)}
-                className="mt-4 px-6 py-2 bg-accent/20 border-2 border-accent text-accent font-bold rounded-full hover:bg-accent hover:text-white transition-all flex items-center gap-2 mx-auto"
+                className="px-5 py-2 md:px-6 md:py-2.5 bg-black text-white border-2 border-white/20 font-bold rounded-xl hover:bg-accent hover:border-accent transition-all flex items-center gap-2 shadow-lg shadow-black/50 text-sm md:text-base"
               >
-                <Trophy size={18} />
+                <Trophy size={18} className="text-accent" />
                 Leaderboard
               </motion.button>
-            </header>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl px-2">
               {/* Left Column: Stats & Character */}
@@ -520,67 +546,106 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-xl"
+            className="fixed inset-0 z-[150] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/98 backdrop-blur-2xl"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="bg-white text-black p-6 md:p-10 rounded-2xl md:rounded-3xl border-4 md:border-8 border-black w-full max-w-2xl relative overflow-hidden"
+              initial={{ scale: 0.95, y: 40, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 40, opacity: 0 }}
+              className="bg-white text-black p-5 sm:p-8 md:p-10 rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-black w-full max-w-2xl relative shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="flex items-center justify-between mb-8">
+              {/* Background Accent */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+
+              <div className="flex items-center justify-between mb-6 md:mb-8 relative shrink-0">
                 <div className="flex items-center gap-3">
-                  <Trophy className="text-accent" size={32} />
-                  <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">Leaderboard</h2>
+                  <div className="p-2 md:p-3 bg-black rounded-2xl">
+                    <Trophy className="text-accent" size={24} />
+                  </div>
+                  <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter leading-none">The Raid Elite</h2>
                 </div>
                 <button
                   onClick={() => setShowLeaderboard(false)}
-                  className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-black hover:bg-accent transition-colors"
+                  className="w-10 h-10 md:w-12 md:h-12 bg-black text-white rounded-2xl flex items-center justify-center font-black hover:bg-accent transition-all hover:rotate-90 group"
                 >
-                  ✕
+                  <span className="text-xl group-hover:scale-110">✕</span>
                 </button>
               </div>
 
-              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-grow pb-4">
                 {leaderboard.length > 0 ? (
                   leaderboard.map((item, index) => (
-                    <div
+                    <motion.div
                       key={item.wallet}
-                      className={`flex items-center justify-between p-4 border-2 border-black rounded-xl ${index === 0 ? 'bg-accent/10 border-accent' : 'bg-black/5'}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className={`flex items-center justify-between p-4 md:p-5 border-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-default
+                        ${index === 0 ? 'bg-accent/5 border-accent shadow-[0_8px_20px_rgba(139,0,0,0.15)]' :
+                          index === 1 ? 'bg-orange-500/5 border-orange-500/30' :
+                            index === 2 ? 'bg-blue-500/5 border-blue-500/30' :
+                              'bg-black/5 border-black/10'}`}
                     >
                       <div className="flex items-center gap-4">
-                        <span className={`w-8 h-8 flex items-center justify-center rounded-full font-black ${index < 3 ? 'bg-accent text-white' : 'bg-black text-white'}`}>
+                        <div className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl font-black text-lg md:text-xl shadow-inner
+                          ${index === 0 ? 'bg-accent text-white rotate-6' :
+                            index === 1 ? 'bg-orange-500 text-white rotate-3' :
+                              index === 2 ? 'bg-blue-500 text-white -rotate-3' :
+                                'bg-black text-white'}`}>
                           {index + 1}
-                        </span>
+                        </div>
                         <div className="flex flex-col">
-                          <span className="font-black text-sm md:text-base text-accent">@{item.twitterHandle || "Unknown"}</span>
-                          <span className="font-mono text-[10px] opacity-40">
+                          <span className={`font-black text-sm md:text-lg uppercase tracking-tight ${index < 3 ? 'text-black' : 'text-black/80'}`}>
+                            {item.twitterHandle.startsWith('@') ? item.twitterHandle : `@${item.twitterHandle}`}
+                          </span>
+                          <span className="font-mono text-[10px] md:text-xs opacity-40 font-bold">
                             {item.wallet.slice(0, 6)}...{item.wallet.slice(-4)}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl md:text-2xl font-black">{item.points}</span>
-                        <span className="text-[10px] md:text-xs font-black uppercase text-black/40">Demons</span>
+                      <div className="flex flex-col items-end">
+                        <span className={`text-2xl md:text-3xl font-black leading-none ${index === 0 ? 'text-accent' : 'text-black'}`}>
+                          {item.points}
+                        </span>
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-black/40">Points</span>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
-                  <div className="text-center py-12 opacity-40 italic">
-                    <UserPlus size={48} className="mx-auto mb-4" />
-                    No demons summoned yet...
+                  <div className="flex flex-col items-center justify-center py-16 text-black/20">
+                    <UserPlus size={64} className="mb-4 animate-bounce" />
+                    <p className="font-black uppercase italic text-lg">No legends found yet</p>
                   </div>
                 )}
               </div>
 
-              <div className="mt-8 pt-6 border-t border-black/10 text-center">
-                <p className="text-xs font-black uppercase tracking-widest text-black/40">
-                  Invite friends to earn points and climb the ranks
+              <div className="mt-6 pt-6 border-t-4 border-black/5 text-center shrink-0">
+                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-black/40 animate-pulse">
+                  The devil rewards the bold. Invite others.
                 </p>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #000;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #8b0000;
+        }
+      `}} />
 
     </div>
   );

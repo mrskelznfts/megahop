@@ -35,7 +35,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [twitterHandle, setTwitterHandle] = useState("");
 
-  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxlGtQBzqT_2vHkrPhBLtgNmpina1rAQ4QYL-ACC4P1YgNLJvEGWZOEfuZoztdNJuin/exec";
+  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyST59kNideCgv_4vqzTbFjU9Exd0j0pz9Bvn0q44xkJUbmaGW5DO1j14AQ2Gf93sg/exec";
 
   useEffect(() => {
     // Handle Referral Link

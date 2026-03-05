@@ -212,7 +212,7 @@ export default function App() {
                 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter mb-2 text-distressed"
                 style={{ fontFamily: 'Playfair Display, serif' }}
               >
-                Join the Raid Cult
+                Claim Your WL
               </motion.h1>
               <p className="text-lg md:text-xl text-white/60 italic">"Prove your loyalty, Megahop."</p>
             </header>

@@ -15,7 +15,6 @@ export default function App() {
   const [step, setStep] = useState<Step>("loading");
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [showEnterButton, setShowEnterButton] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Form State
   const [followed, setFollowed] = useState(false);
@@ -47,11 +46,7 @@ export default function App() {
   }, [step]);
 
   const handleEnterRaid = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setStep("raid");
-      setIsTransitioning(false);
-    }, 1500);
+    setStep("raid");
   };
 
   const validateForm = () => {
@@ -59,6 +54,7 @@ export default function App() {
 
     const twitterRegex = /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.*\/status\/\d+/;
     const evmRegex = /^0x[a-fA-F0-9]{40}$/;
+    const megaRegex = /^[a-zA-Z0-9-]+\.mega$/;
 
     if (!followed) newErrors.followed = "The devil sees missing tasks.";
     if (!liked) newErrors.liked = "The devil sees missing tasks.";
@@ -71,8 +67,10 @@ export default function App() {
       newErrors.raidLink = raidLink ? "That link smells like fear." : "Send the real raid link.";
     }
 
-    if (!wallet || !evmRegex.test(wallet)) {
-      newErrors.wallet = wallet ? "This wallet looks cursed." : "Invalid EVM address.";
+    if (!wallet) {
+      newErrors.wallet = "Invalid EVM address or .mega domain.";
+    } else if (!evmRegex.test(wallet) && !megaRegex.test(wallet)) {
+      newErrors.wallet = "This address looks cursed or invalid.";
     }
 
     setErrors(newErrors);
@@ -88,9 +86,32 @@ export default function App() {
       setSubmitError(null);
 
       try {
-        // We use a single fetch request. 
-        // Note: Google Apps Script usually requires a redirect. 
-        // We use mode: 'cors' by default and hope the script allows it.
+        let finalWallet = wallet;
+
+        // Resolve .mega domain if detected
+        if (wallet.toLowerCase().endsWith(".mega")) {
+          setSubmitError("Resolving .mega domain...");
+          try {
+            const resolveRes = await fetch(`https://api.dotmega.domains/resolve?name=${wallet.toLowerCase()}`);
+            const resolveData = await resolveRes.json();
+
+            if (resolveData && resolveData.address && resolveData.address !== "0x0000000000000000000000000000000000000000") {
+              finalWallet = resolveData.address;
+              setSubmitError(null);
+            } else {
+              setSubmitError("Could not resolve .mega domain.");
+              setIsSubmitting(false);
+              return;
+            }
+          } catch (err) {
+            console.error("Resolution error:", err);
+            setSubmitError("Failed to reach .mega domains API.");
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
+        // Send to Google Sheets
         const response = await fetch(GOOGLE_SHEETS_URL, {
           method: "POST",
           body: JSON.stringify({
@@ -98,19 +119,15 @@ export default function App() {
             liked,
             quoteLink,
             raidLink,
-            wallet
+            wallet: finalWallet
           }),
         });
 
-        // If we get here, the request was at least sent and received a response.
         let result;
         try {
           result = await response.json();
         } catch (e) {
-          // If json() fails (CORS opaque), but data arrived (as user said), 
-          // we might assume success if we can't read the error.
-          // But since the user wants duplicate checks, we really need the JSON.
-          console.warn("Could not parse response JSON. Assuming potential success if data arrived.");
+          console.warn("Could not parse response JSON. Assuming potential success.");
           result = { result: "success" };
         }
 
@@ -124,13 +141,11 @@ export default function App() {
         }
       } catch (error) {
         console.error("Submission error:", error);
-        // Fallback for network/CORS errors
         setSubmitError("Connection to the underworld lost. Try again.");
       } finally {
         setIsSubmitting(false);
       }
     } else {
-      // If validation fails, scroll to the first error
       setSubmitError("Fix the errors in your pact first.");
       const errorField = document.querySelector('.text-accent');
       if (errorField) {
@@ -418,24 +433,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Transition Overlay */}
-      <AnimatePresence>
-        {isTransitioning && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black pointer-events-none flex items-center justify-center"
-          >
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 10, opacity: 1 }}
-              transition={{ duration: 1.5, ease: "circIn" }}
-              className="w-64 h-64 bg-white rounded-full blur-3xl"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

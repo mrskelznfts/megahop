@@ -144,8 +144,8 @@ export default function App() {
           twitterHandle,
           quoteLink,
           raidLink,
-          wallet: finalWallet,
-          referrer: referrer
+          wallet: finalWallet.toLowerCase().trim(),
+          referrer: referrer.toLowerCase().trim()
         };
 
         console.log("Submitting to Google Sheets...", payload);

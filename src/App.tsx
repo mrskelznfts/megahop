@@ -33,6 +33,7 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState<{ wallet: string; points: number }[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [twitterHandle, setTwitterHandle] = useState("");
 
   const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzTJTWytAwPyBA6qD__No-T-xmxb8grAVdlw1-LVV_rY6EOj4hQzGwog4FU3412J3cc/exec";
 
@@ -48,6 +49,7 @@ export default function App() {
     fetch(GOOGLE_SHEETS_URL)
       .then(res => res.json())
       .then(data => {
+        console.log("Leaderboard data received:", data);
         if (Array.isArray(data)) setLeaderboard(data);
       })
       .catch(err => console.error("Failed to fetch leaderboard:", err));
@@ -82,6 +84,7 @@ export default function App() {
 
     if (!followed) newErrors.followed = "The devil sees missing tasks.";
     if (!liked) newErrors.liked = "The devil sees missing tasks.";
+    if (!twitterHandle) newErrors.twitterHandle = "Your identity is hidden from the devil.";
 
     if (!quoteLink || !twitterRegex.test(quoteLink)) {
       newErrors.quoteLink = quoteLink ? "This is not a valid Quote Tweet link, Megahop." : "Don't lie to the devil.";
@@ -135,22 +138,29 @@ export default function App() {
           }
         }
 
+        const payload = {
+          followed,
+          liked,
+          twitterHandle,
+          quoteLink,
+          raidLink,
+          wallet: finalWallet,
+          referrer: referrer
+        };
+
+        console.log("Submitting to Google Sheets...", payload);
+
         // Send to Google Sheets
         const response = await fetch(GOOGLE_SHEETS_URL, {
           method: "POST",
-          mode: "no-cors", // Use no-cors to avoid preflight issues
+          mode: "no-cors",
           headers: {
             "Content-Type": "text/plain",
           },
-          body: JSON.stringify({
-            followed,
-            liked,
-            quoteLink,
-            raidLink,
-            wallet: finalWallet,
-            referrer: referrer
-          }),
+          body: JSON.stringify(payload),
         });
+
+        console.log("Request sent. (Note: no-cors prevents reading response body)");
 
         // With no-cors, we can't read the response body, so we assume success 
         // if the request doesn't throw an error.
@@ -324,6 +334,26 @@ export default function App() {
                       />
                       <span className="font-bold uppercase text-sm md:text-base group-hover:text-accent transition-colors">I have liked & retweeted</span>
                     </label>
+                  </section>
+
+                  {/* Task 2.5: Twitter Handle */}
+                  <section className="space-y-2">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 md:w-10 md:h-10 bg-black text-white rounded-full flex items-center justify-center font-black text-sm md:text-base">@</div>
+                      <h3 className="text-lg md:text-xl font-black uppercase">Your Twitter @Handle</h3>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="@username"
+                      value={twitterHandle}
+                      onChange={(e) => setTwitterHandle(e.target.value)}
+                      className="w-full p-3 md:p-4 border-2 md:border-4 border-black rounded-xl font-bold focus:ring-4 focus:ring-accent outline-none transition-all text-sm md:text-base"
+                    />
+                    {errors.twitterHandle && (
+                      <p className="flex items-center gap-2 text-accent font-black text-xs md:text-sm uppercase italic">
+                        <AlertCircle size={14} /> {errors.twitterHandle}
+                      </p>
+                    )}
                   </section>
 
                   {/* Task 3: Quote Tweet Validation */}
@@ -521,9 +551,12 @@ export default function App() {
                         <span className={`w-8 h-8 flex items-center justify-center rounded-full font-black ${index < 3 ? 'bg-accent text-white' : 'bg-black text-white'}`}>
                           {index + 1}
                         </span>
-                        <span className="font-mono font-bold text-xs md:text-sm">
-                          {item.wallet.slice(0, 6)}...{item.wallet.slice(-4)}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-black text-sm md:text-base text-accent">@{item.twitterHandle || "Unknown"}</span>
+                          <span className="font-mono text-[10px] opacity-40">
+                            {item.wallet.slice(0, 6)}...{item.wallet.slice(-4)}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xl md:text-2xl font-black">{item.points}</span>

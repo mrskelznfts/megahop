@@ -138,6 +138,10 @@ export default function App() {
         // Send to Google Sheets
         const response = await fetch(GOOGLE_SHEETS_URL, {
           method: "POST",
+          mode: "no-cors", // Use no-cors to avoid preflight issues
+          headers: {
+            "Content-Type": "text/plain",
+          },
           body: JSON.stringify({
             followed,
             liked,
@@ -148,22 +152,9 @@ export default function App() {
           }),
         });
 
-        let result;
-        try {
-          result = await response.json();
-        } catch (e) {
-          console.warn("Could not parse response JSON. Assuming potential success.");
-          result = { result: "success" };
-        }
-
-        if (result.result === "success") {
-          setSubmitted(true);
-        } else {
-          setSubmitError(result.message || "The ritual failed. Try again.");
-          if (result.message?.toLowerCase().includes("wallet")) {
-            setErrors(prev => ({ ...prev, wallet: result.message }));
-          }
-        }
+        // With no-cors, we can't read the response body, so we assume success 
+        // if the request doesn't throw an error.
+        setSubmitted(true);
       } catch (error) {
         console.error("Submission error:", error);
         setSubmitError("Connection to the underworld lost. Try again.");

@@ -5,7 +5,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Wallet,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Trophy,
+  UserPlus
 } from "lucide-react";
 import { DevilCharacter, FilmGrain, SmokeBackground } from "./components/VintageEffects";
 
@@ -26,8 +29,29 @@ export default function App() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [referrer, setReferrer] = useState("");
+  const [leaderboard, setLeaderboard] = useState<{ wallet: string; points: number }[]>([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycby78w7E7QsSUj_bG-ttG2Epf9rZe9FV4YlvfV0RYv5ypBKA0EThRgGx4FmMADHovtxbeQ/exec";
+  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzTJTWytAwPyBA6qD__No-T-xmxb8grAVdlw1-LVV_rY6EOj4hQzGwog4FU3412J3cc/exec";
+
+  useEffect(() => {
+    // Handle Referral Link
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref && /^0x[a-fA-F0-9]{40}$/.test(ref)) {
+      setReferrer(ref);
+    }
+
+    // Fetch Leaderboard
+    fetch(GOOGLE_SHEETS_URL)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setLeaderboard(data);
+      })
+      .catch(err => console.error("Failed to fetch leaderboard:", err));
+  }, []);
 
   useEffect(() => {
     if (step === "loading") {
@@ -119,7 +143,8 @@ export default function App() {
             liked,
             quoteLink,
             raidLink,
-            wallet: finalWallet
+            wallet: finalWallet,
+            referrer: referrer
           }),
         });
 
@@ -215,6 +240,15 @@ export default function App() {
                 Claim Your WL
               </motion.h1>
               <p className="text-lg md:text-xl text-white/60 italic">"Prove your loyalty, Megahop."</p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowLeaderboard(true)}
+                className="mt-4 px-6 py-2 bg-accent/20 border-2 border-accent text-accent font-bold rounded-full hover:bg-accent hover:text-white transition-all flex items-center gap-2 mx-auto"
+              >
+                <Trophy size={18} />
+                Leaderboard
+              </motion.button>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl px-2">
@@ -421,13 +455,104 @@ export default function App() {
               <div className="absolute top-0 left-0 w-full h-2 bg-accent" />
               <DevilCharacter intensity={2} className="mx-auto mb-6 scale-50 md:scale-75" />
               <h2 className="text-3xl md:text-5xl font-black uppercase mb-4 tracking-tighter">Welcome to the Cult.</h2>
-              <p className="text-lg md:text-xl font-bold italic mb-8">"Rewards will be summoned soon."</p>
+              <p className="text-lg md:text-xl font-bold italic mb-6">"Rewards will be summoned soon."</p>
+
+              <div className="bg-black/5 border-2 border-black/10 p-4 rounded-xl mb-8 text-left">
+                <p className="text-xs uppercase font-black text-black/40 mb-2">Your Summoning Link (Referral)</p>
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={`${window.location.origin}${window.location.pathname}?ref=${wallet}`}
+                    className="flex-1 bg-white border-2 border-black p-2 text-xs font-mono rounded overflow-hidden text-ellipsis"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?ref=${wallet}`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="bg-black text-white p-2 rounded hover:bg-accent transition-colors flex items-center gap-2"
+                  >
+                    {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
+                <p className="text-[10px] mt-2 font-bold text-accent uppercase animate-pulse">
+                  Invite other Megahops to climb the leaderboard!
+                </p>
+              </div>
+
               <button
                 onClick={() => setSubmitted(false)}
                 className="px-6 md:px-8 py-3 md:py-4 bg-black text-white font-black uppercase rounded-xl hover:bg-accent transition-colors text-sm md:text-base"
               >
                 Mischief Managed
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Leaderboard Modal */}
+      <AnimatePresence>
+        {showLeaderboard && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white text-black p-6 md:p-10 rounded-2xl md:rounded-3xl border-4 md:border-8 border-black w-full max-w-2xl relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <Trophy className="text-accent" size={32} />
+                  <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">Leaderboard</h2>
+                </div>
+                <button
+                  onClick={() => setShowLeaderboard(false)}
+                  className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-black hover:bg-accent transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                {leaderboard.length > 0 ? (
+                  leaderboard.map((item, index) => (
+                    <div
+                      key={item.wallet}
+                      className={`flex items-center justify-between p-4 border-2 border-black rounded-xl ${index === 0 ? 'bg-accent/10 border-accent' : 'bg-black/5'}`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className={`w-8 h-8 flex items-center justify-center rounded-full font-black ${index < 3 ? 'bg-accent text-white' : 'bg-black text-white'}`}>
+                          {index + 1}
+                        </span>
+                        <span className="font-mono font-bold text-xs md:text-sm">
+                          {item.wallet.slice(0, 6)}...{item.wallet.slice(-4)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl md:text-2xl font-black">{item.points}</span>
+                        <span className="text-[10px] md:text-xs font-black uppercase text-black/40">Demons</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12 opacity-40 italic">
+                    <UserPlus size={48} className="mx-auto mb-4" />
+                    No demons summoned yet...
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-black/10 text-center">
+                <p className="text-xs font-black uppercase tracking-widest text-black/40">
+                  Invite friends to earn points and climb the ranks
+                </p>
+              </div>
             </motion.div>
           </motion.div>
         )}

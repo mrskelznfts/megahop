@@ -266,17 +266,7 @@ export default function App() {
               <p className="text-lg md:text-xl text-white/60 italic">"Prove your loyalty, Megahop."</p>
             </header>
 
-            <div className="w-full max-w-6xl flex justify-end mb-6">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowLeaderboard(true)}
-                className="px-5 py-2 md:px-6 md:py-2.5 bg-black text-white border-2 border-white/20 font-bold rounded-xl hover:bg-accent hover:border-accent transition-all flex items-center gap-2 shadow-lg shadow-black/50 text-sm md:text-base"
-              >
-                <Trophy size={18} className="text-accent" />
-                Leaderboard
-              </motion.button>
-            </div>
+
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl px-2">
               {/* Left Column: Stats & Character */}
